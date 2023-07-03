@@ -1,8 +1,7 @@
 const int relayOut = 5;
 const unsigned long timeOff = 60000; // 1 minute
-const unsigned long timeOn = 60000; // 1 minute
+const unsigned long timeOn = 120000; // 2 minutes
 
-bool initialized = false;
 bool on = false;
 unsigned long previousMillis = 0;
 unsigned long interval = timeOn;
@@ -10,37 +9,40 @@ unsigned long interval = timeOn;
 void setup() {
   Serial.begin(9600);
   pinMode(relayOut, OUTPUT);
+  
+  on = true;
+  previousMillis = millis();
+  interval = timeOn;
 }
 
 void loop() {
   unsigned long currentMillis = millis();
   
-  if (!initialized) {
-    initialized = true;
-    interval = turnOn();
+  if (currentMillis < previousMillis) {
+    // The millis() internal counter overflowed and reseted to zero
     previousMillis = currentMillis;
   }
-
+  
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     if (on) {
-      interval = turnOff();
+      turnOff();
+      interval = timeOff;
     } else {
-      interval = turnOn();
+      turnOn();
+      interval = timeOn;
     }
   }
   
   delay(1000);
 }
 
-unsigned long turnOn() {
+void turnOn() {
   on = true;
   digitalWrite(relayOut, LOW);
-  return timeOn;
 }
 
-unsigned long turnOff() {
+void turnOff() {
   on = false;
   digitalWrite(relayOut, HIGH);
-  return timeOff;
 }
